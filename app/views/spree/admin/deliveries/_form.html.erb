@@ -1,0 +1,25 @@
+<%= render partial: 'spree/shared/error_messages', locals: { target: @delivery } %>
+
+<div class="form-group">
+  <%= f.field_container :state do %>
+    <%= f.label :state %>
+    <%= f.select :state,
+      options_for_select(Spree::Delivery.state_machines[:state].states.collect { |s| [Spree.t("delivery_states.#{s.name}"), s.value] }, selected: @delivery.state),
+      {}, class: 'select2', required: :required %>
+  <% end %>
+
+  <%= f.field_container :user_id do %>
+    <% drivers = Spree::User.joins(:spree_roles).where(spree_roles: { id: Spree::Role.find_by_name('delivery') }) %>
+    <%= f.label :user %>
+    <%= f.select :user_id,
+      options_from_collection_for_select(drivers, :id, :email),
+      {}, class: 'select2' %>
+  <% end %>
+
+  <%= f.field_container :shipment_id do %>
+    <% shipments = Spree::Shipment.where(state: :ready) %>
+    <%= f.label :shipment %>
+    <%= f.collection_select :shipment_id, shipments, :id, :number,
+      {}, class: 'select2', required: :required %>
+  <% end %>
+</div>

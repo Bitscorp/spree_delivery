@@ -1,0 +1,69 @@
+<% content_for :page_title do %>
+  <%= link_to plural_resource_name(Spree::Delivery), spree.admin_deliveries_url %> /
+  <%= @delivery.id %>
+<% end %>
+
+<% content_for :page_actions do %>
+  <%= button_link_to(Spree.t(:start_delivery), start_admin_delivery_path(@delivery), class: "btn-success", icon: 'add') if can? :start, @delivery %>
+  <%= button_link_to(Spree.t(:finish_delivery), finish_admin_delivery_path(@delivery), class: "btn-success", icon: 'add') if can? :finish, @delivery %>
+<% end %>
+
+<% shipment = @delivery.shipment %>
+<% order = shipment.order %>
+<% address = order.shipping_address.to_delivery_address %>
+<%# TODO: We can embed map if we get embed API?
+ https://developers.google.com/maps/documentation/embed/get-started#directions_mode
+%>
+<h4>
+  <%= Spree.t(:address) %>: <%= link_to_map(address) %>
+</h4>
+<h6>
+  <%= Spree.t(:created_at) %>: <%= l @delivery.created_at %>
+</h6>
+<h6>
+  <%= Spree.t(:updated_at) %>: <%= l @delivery.updated_at %>
+</h6>
+
+<% unless @delivery.pending? %>
+  <h6>
+    <%= Spree.t(:delivery_started_at) %>: <%= l @delivery.state_changes.where(next_state: 'in_progress')&.last&.created_at, default: nil %>
+  </h6>
+<% end %>
+<% if @delivery.finished? %>
+  <h6>
+    <%= Spree.t(:delivery_finished_at) %>: <%= l @delivery.state_changes.where(next_state: 'finished')&.last&.created_at, default: nil %>
+  </h6>
+<% end %>
+
+<div class="card-header stock-location no-borderb" data-hook="stock-location">
+  <h1 class="flex-wrap align-items-center card-title mb-0 h5">
+    <span class="shipment-number"><%= shipment.number %></span>
+    -
+    <span class="shipment-state"><%= Spree.t("shipment_states.#{shipment.state}") %></span>
+    <%= Spree.t(:package_from) %>
+    <strong class="stock-location-name" data-hook="stock-location-name">'<%= shipment.stock_location.name %>'</strong>
+  </h1>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-bordered stock-contents" data-hook="stock-contents">
+    <thead>
+      <tr>
+        <th colspan="2"><%= Spree.t(:item_description) %></th>
+        <th width="15%" class="text-center"><%= Spree.t(:quantity) %></th>
+      </tr>
+    </thead>
+
+    <tbody data-shipment-number="<%= shipment.number %>" data-order-number="<%= order.number %>">
+      <%= render 'shipment_manifest', shipment: shipment %>
+
+      <% if order.special_instructions.present? %>
+        <tr class='special_instructions'>
+          <td colspan="5">
+            <strong><%= Spree.t(:special_instructions) %>:&nbsp;</strong><%= order.special_instructions %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

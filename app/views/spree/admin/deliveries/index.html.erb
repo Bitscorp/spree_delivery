@@ -1,0 +1,82 @@
+<% content_for :page_title do %>
+  <%= plural_resource_name(Spree::Delivery) %>
+<% end %>
+
+<% content_for :page_actions do %>
+  <%= button_link_to Spree.t(:new_delivery), new_object_url, class: "btn-success", icon: 'add', id: 'admin_new_delivery_link' %>
+<% end if can? :create, Spree::Delivery %>
+
+<% if @deliveries.any? %>
+  <table class="table">
+    <thead>
+      <tr data-hook="admin_deliveries_index_headers">
+        <th><%= Spree.t(:delivery) %></th>
+        <th><%= Spree.t(:address) %></th>
+        <th><%= Spree.t(:shipment) %></th>
+        <th><%= Spree.t(:order) %></th>
+        <th><%= Spree.t(:state) %></th>
+        <% if can? :destroy, Spree::Delivery %>
+          <th><%= Spree.t(:driver) %></th>
+        <% end %>
+        <th class="actions"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @deliveries.each do |delivery|%>
+        <% shipment = delivery.shipment %>
+        <% driver = delivery.driver %>
+        <% order = shipment.order %>
+        <% address = order.shipping_address.to_delivery_address %>
+        <tr id="<%= spree_dom_id delivery %>" data-hook="admin_deliveries_index_rows">
+          <td><%= link_to delivery.id, [:admin, delivery] %></td>
+          <td><%= link_to_map(address) %></td>
+          <td><%= shipment.number %></td>
+          <td>
+            <% if try_spree_current_user.respond_to?(:has_spree_role?) && try_spree_current_user.has_spree_role?('admin') %>
+              <%= link_to order.number, edit_admin_order_path(order) %>
+            <% else %>
+              <%= order.number %>
+            <% end %>
+          </td>
+
+          <td>
+            <% if delivery.finished? %>
+              <span class="badge badge-success"><%= h delivery.state %></span>
+            <% end %>
+
+            <% if delivery.pending? %>
+              <span class="badge badge-secondary"><%= h delivery.state %></span>
+            <% end %>
+
+            <% if delivery.in_progress? %>
+              <span class="badge badge-warning"><%= h delivery.state %></span>
+            <% end %>
+          </td>
+
+          <%# Show driver to admins %>
+          <% if try_spree_current_user.respond_to?(:has_spree_role?) && try_spree_current_user.has_spree_role?('admin') %>
+            <td><%= link_to driver.email, edit_admin_user_path(driver) if driver.present? %></td>
+          <% end %>
+          <td class="actions text-right">
+            <% if delivery.pending? && can?(:start, delivery) %>
+              <%= link_to Spree.t(:start_delivery), start_admin_delivery_path(delivery), class: 'btn btn-primary btn-sm' %>
+            <% end %>
+
+            <% if delivery.in_progress? && can?(:finish, delivery) %>
+              <%= link_to Spree.t(:finish_delivery), finish_admin_delivery_path(delivery), class: 'btn btn-danger btn-sm'%>
+            <% end %>
+
+            <% if can?(:destroy, delivery) %>
+              <%= link_to_delete(delivery, no_text: true)  %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <div class="alert alert-warning">
+    <%= Spree.t(:no_resource_found, resource: plural_resource_name(Spree::Delivery)) %>,
+    <%= link_to(Spree.t(:add_one), new_object_url) if can? :create, Spree::Delivery %>!
+  </div>
+<% end %>

@@ -1,0 +1,26 @@
+# Sample localization file for English. Add more files in this directory for other locales.
+# See https://github.com/svenfuchs/rails-i18n/tree/master/rails%2Flocale for starting points.
+
+en:
+  activerecord:
+    errors:
+      models:
+        spree/delivery:
+          attributes:
+            driver:
+              wrong_role: "can't be assigned to user without delivery role"
+            base:
+              order_not_shipped: "can't be assigned to order that is not shipped"
+  spree:
+    nav_bar:
+      deliveries: DELIVERIES
+    delivery_taken_or_finished: Delivery is already taken or finished
+    driver: Driver
+    start_delivery: Start delivery
+    delivery_started: Successfully started delivery
+    finish_delivery: Finish delivery
+    delivery_finished: Successfully finished delivery
+    new_delivery: New delivery
+    updated_at: Updated At
+    delivery_started_at: Delivery started at
+    delivery_finished_at: Delivery finished at
